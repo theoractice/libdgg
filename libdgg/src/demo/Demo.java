@@ -1082,12 +1082,17 @@ private Fontsizer fntsizer;
 			            					);
 			            			break;
 			            		case 3:
+			            			// 画法似乎是二阶贝塞尔曲线
 			            			sx=ex;
 			            			sy=ey;
+			            			coordIdx++;
+			            			coordIdx++;
 			            			mx=(int)(coords[coordIdx++]+0.5);
 			            			my=(int)(coords[coordIdx++]+0.5);
 			            			ex=(int)(coords[coordIdx++]+0.5);
 			            			ey=(int)(coords[coordIdx++]+0.5);
+			            			mx=(mx+(sx+ex)/2)/2;
+			            			my=(my+(sy+ey)/2)/2;
 			            			strOut=strOut+String.format("P,%d;%d,%d;%d,%d;%d\n",
 			            					sx,sy,mx,my,ex,ey
 			            					);
