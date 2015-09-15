@@ -234,6 +234,13 @@ public class FontDB {
 
 	}
 
+	public GeneralPath genComponent(String IDSeqS, int size) 
+	{		
+		GeneralPath path = new GeneralPath(GeneralPath.WIND_NON_ZERO);;	
+		CharComponent 部件 = iDSparser.gen(IDSeqS);		
+		return 部件.write(path, size, size, 0, 0, false);
+	}
+	
 	public void drawComponent(Graphics2D g2, String IDSeqS, int size, float x,
 			float y, Color color, int 字形, boolean antialising) {
 		g2.setColor(color);

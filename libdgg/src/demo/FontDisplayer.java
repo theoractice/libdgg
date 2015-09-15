@@ -94,8 +94,8 @@ public class FontDisplayer extends JComponent {
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, this.getWidth(), this.getHeight());
 		 g.setColor(Color.RED);
-		g.drawString("6筆筆序碼=" + fdb.get_charhash(helloIDS), 20, 580);
-		g.drawString("空間配置rank值" +fdb.getLayoutRank(helloIDS) , 20, 590);
+		g.drawString("6筆筆序碼=" + fdb.get_charhash(helloIDS), 20, 20);
+		g.drawString("空間配置rank值" +fdb.getLayoutRank(helloIDS) , 20, 30);
 		// g.drawString(" Canvas width=" + this.getWidth() + ",height=" +
 		// this.getHeight() + "文字區大小為" + 文字區大小 + "X" + 文字區大小, 20, 596);//
 		// debug大小

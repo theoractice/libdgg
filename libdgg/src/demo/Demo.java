@@ -40,9 +40,16 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.lang.reflect.Field;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -62,7 +69,9 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 
+import dgg.CharComponent;
 import dgg.FontDB;
+import dgg.IDSparser;
 
 /**
  * @author mgdesigner 12/13把initialize、main建構子放到最後面 12/27完成從輸入區輸入的功能（目前只能打一字）
@@ -168,7 +177,9 @@ private Fontsizer fntsizer;
 
 	// ---------------------------------------
 	//-------工具Menu------------
-	private  JMenuItem 查字MI = null;
+	private JMenuItem 转换字形 = null;
+	
+	private JMenuItem 查字MI = null;
 
 	private JMenu helpMenu = null;
 	
@@ -569,6 +580,7 @@ private Fontsizer fntsizer;
 		if (功能Menu == null) {
 			功能Menu = new JMenu();
 			功能Menu.setText("功能");
+			功能Menu.add(get转换字形());
 			功能Menu.add(get查字MI());
 			功能Menu.addSeparator();
 			功能Menu.add(get萌體MI());
@@ -1009,6 +1021,106 @@ private Fontsizer fntsizer;
 					Event.CTRL_MASK, true));
 		}
 		return saveMenuItem;
+	}
+	
+	private JMenuItem get转换字形() {
+		if (转换字形 == null) {
+			转换字形 = new JMenuItem();
+			转换字形.setText("转换字形");
+			转换字形.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					File inFile = new File("char.txt"); // 读取的CSV文件
+			        File outFile = new File("stroke.txt");//写出的CSV文件
+			        String strIn = "";
+			        String strOut = "";
+			        
+			        try {
+			            BufferedReader reader = new BufferedReader(new FileReader(inFile));
+			            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
+			            while((strIn = reader.readLine())!= null){
+			            	strOut=strIn+"[";
+			            	GeneralPath glyph;
+			            	try {
+			            		glyph = fd.fdb.genComponent(strIn, 400);
+			            	}
+			            	catch(Exception ex){
+			            		continue;
+			            	}
+			            	
+			            	Field rfCoords =GeneralPath.class.getSuperclass().getDeclaredField("floatCoords");
+			            	Field rpTypes =GeneralPath.class.getSuperclass().getSuperclass().getDeclaredField("pointTypes");
+			            	Field rnTypes =GeneralPath.class.getSuperclass().getSuperclass().getDeclaredField("numTypes");
+			            	rfCoords.setAccessible(true);
+			            	rpTypes.setAccessible(true);
+			            	rnTypes.setAccessible(true);
+			            	float[] coords = (float[])rfCoords.get(glyph);
+			            	byte[] types = (byte[])rpTypes.get(glyph);			            	
+			            	int nTypes = (Integer)rnTypes.get(glyph);
+
+			            	int coordIdx = 0;
+		            		int sx=0,sy=0,mx=0,my=0,ex=0,ey=0;
+
+		            		for(int i = 0; i < nTypes; i++)
+			            	{
+			            		switch(types[i])
+			            		{
+			            		case 0:
+			            			sx=(int)(coords[coordIdx++]+0.5);
+			            			sy=(int)(coords[coordIdx++]+0.5);
+			            			mx=sx;
+			            			my=sy;
+			            			ex=sx;
+			            			ey=sy;
+			            			break;
+			            		case 1:
+			            			sx=ex;
+			            			sy=ey;
+			            			ex=(int)(coords[coordIdx++]+0.5);
+			            			ey=(int)(coords[coordIdx++]+0.5);
+			            			strOut=strOut+String.format("H,%d;%d,%d;%d\n",
+			            					sx,sy,ex,ey
+			            					);
+			            			break;
+			            		case 3:
+			            			sx=ex;
+			            			sy=ey;
+			            			mx=(int)(coords[coordIdx++]+0.5);
+			            			my=(int)(coords[coordIdx++]+0.5);
+			            			ex=(int)(coords[coordIdx++]+0.5);
+			            			ey=(int)(coords[coordIdx++]+0.5);
+			            			strOut=strOut+String.format("P,%d;%d,%d;%d,%d;%d\n",
+			            					sx,sy,mx,my,ex,ey
+			            					);
+			            			break;
+			            		default:
+			            			break;
+			            		}
+			            	}
+			            	strOut+="]";
+			            	
+			            	writer.write(strOut);
+			            	writer.newLine();
+				            writer.flush();
+			            }
+			            writer.close();
+			            reader.close();
+			        } catch (FileNotFoundException ex) {
+			            System.out.println("没找到文件！");
+			        } catch (IOException ex) {
+			            System.out.println("读写文件出错！");
+			        } catch (NoSuchFieldException ex) {
+			            System.out.println("反射类型失败");
+			        } catch (IllegalAccessException ex) {
+			            System.out.println("反射字形信息失败");
+			        } catch (Exception ex) {
+			            System.out.println(ex.getMessage());
+			        }
+			        finally {
+			        }
+				}
+			});
+		} // end of if ()
+		return 转换字形;
 	}
 	
 	private JMenuItem get查字MI() {
